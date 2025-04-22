@@ -115,52 +115,54 @@ function updateLabels(totalBudget) {
       day.amount = parseFloat((totalBudget * day.percent).toFixed(2));
     });
 }
-  exportButton.addEventListener('click', () => {
-    const totalBudget = parseFloat(document.getElementById('total-budget').value);
-    const totalDays = parseInt(document.getElementById('total-days').value);
-    const exportData = {
-        totalDays: totalDays,
-        days: daysData.map(day => ({
-            day: day.day,
-            percent: parseFloat(day.percent.toFixed(2)), // force 2 decimal places
-            amount: parseFloat((totalBudget * day.percent).toFixed(2)) // also 2 decimal places
-        }))
-    };
+exportButton.addEventListener('click', () => {
+  const totalBudget = parseFloat(document.getElementById('total-budget').value);
+  const totalDays = parseInt(document.getElementById('total-days').value);
+  const exportData = {
+      totalBudget: totalBudget,
+      totalDays: totalDays,
+      days: daysData.map(day => ({
+          day: day.day,
+          percent: parseFloat(day.percent.toFixed(2)), // force 2 decimal places
+          amount: parseFloat((totalBudget * day.percent).toFixed(2)) // also 2 decimal places
+      }))
+  };
 
-    const json = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'budget_data.json';
-    a.click();
+  const json = JSON.stringify(exportData, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'budget_data.json';
+  a.click();
 });
 
-importInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-        try {
-            const importedData = JSON.parse(event.target.result);
-            const totalBudget = parseFloat(document.getElementById('total-budget').value) || 1;
-            
-            // Set the totalDays input value
-            document.getElementById('total-days').value = importedData.totalDays;
-            
-            // Normalize the imported data
-            const total = importedData.days.reduce((sum, d) => sum + d.percent, 0);
-            const isNormalized = Math.abs(total - 1) < 0.00001;
-            
-            daysData = importedData.days.map(day => ({
-                ...day
-            }));
-            
-            createDisplay(totalBudget, importedData.totalDays);
-        } catch (err) {
-            alert('Invalid JSON file.');
-        }
-    };
-    reader.readAsText(file);
+importInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+      try {
+          const importedData = JSON.parse(event.target.result);
+
+          const totalBudget = parseFloat(importedData.totalBudget) || 1;
+          const totalDays = parseInt(importedData.totalDays);
+
+          // Update input fields
+          document.getElementById('total-budget').value = totalBudget;
+          document.getElementById('total-days').value = totalDays;
+
+          // Set daysData
+          daysData = importedData.days.map(day => ({
+              ...day
+          }));
+
+          createDisplay(totalBudget, totalDays);
+      } catch (err) {
+          alert('Invalid JSON file.');
+      }
+  };
+  reader.readAsText(file);
 });
