@@ -212,7 +212,7 @@ input[type="number"] {
   transform: translate(-50%, -50%);
   font-size: 20px;
   opacity: 0;
-  transition: opacity 0.8s ease, visibility 0.8s ease;
+  transition: opacity 1.5s ease, visibility 1.5s ease;
 }
 
 #ads-toast.show {

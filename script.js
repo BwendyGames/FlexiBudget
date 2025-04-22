@@ -234,18 +234,28 @@ document.getElementById('source-code-button').addEventListener('click', () => {
   window.open('https://github.com/BwendyGames/FlexiBudget', '_blank');
 });
 
-  const button = document.getElementById('toggle-ads-button');
-  //const adContainer = document.getElementById('ad-container');
+const button = document.getElementById('toggle-ads-button');
+  const adContainer = document.getElementById('ad-container');
   const toast = document.getElementById('ads-toast');
 
-  let adsEnabled = true;
+  // Load saved state or default to true (ads enabled)
+  let adsEnabled = localStorage.getItem('adsEnabled');
+  adsEnabled = adsEnabled === null ? true : JSON.parse(adsEnabled);
+
+  // Initial render
+  adContainer.style.display = adsEnabled ? 'block' : 'none';
+  button.textContent = adsEnabled ? 'Disable Ads' : 'Enable Ads';
 
   button.addEventListener('click', () => {
     adsEnabled = !adsEnabled;
 
-    //adContainer.style.display = adsEnabled ? 'block' : 'none';
+    // Save state
+    localStorage.setItem('adsEnabled', JSON.stringify(adsEnabled));
+
+    // Update UI
+    adContainer.style.display = adsEnabled ? 'block' : 'none';
     button.textContent = adsEnabled ? 'Disable Ads' : 'Enable Ads';
-    toast.textContent = adsEnabled ? 'Ads are now enabled. Thankyou for your support.' : 'Ads are now disabled. Thank you for using my site. Ads are entirely optional, but they help support me.';
+    toast.textContent = adsEnabled ? 'Ads are now enabled, thank you for your support.' : 'Ads are now disabled. Thankyou for using my site, on all of my sites, ads are optional where present. Its not required but appreciated.';
 
     // Show popup
     toast.classList.add('show');
