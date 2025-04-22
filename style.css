@@ -8,7 +8,7 @@ body {
     align-items: flex-start;
     min-height: 100vh;
     padding: 2rem;
-    padding-bottom: 80px; /* Added space for the footer */
+    padding-bottom: 140px; /* increase a bit for safety */
   }
   
   .container {
