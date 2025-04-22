@@ -233,3 +233,23 @@ importInput.addEventListener('change', (e) => {
 document.getElementById('source-code-button').addEventListener('click', () => {
   window.open('https://github.com/BwendyGames/FlexiBudget', '_blank');
 });
+
+  const button = document.getElementById('toggle-ads-button');
+  //const adContainer = document.getElementById('ad-container');
+  const toast = document.getElementById('ads-toast');
+
+  let adsEnabled = true;
+
+  button.addEventListener('click', () => {
+    adsEnabled = !adsEnabled;
+
+    //adContainer.style.display = adsEnabled ? 'block' : 'none';
+    button.textContent = adsEnabled ? 'Disable Ads' : 'Enable Ads';
+    toast.textContent = adsEnabled ? 'Ads are now enabled. Thankyou for your support.' : 'Ads are now disabled. Thank you for using my site. Ads are entirely optional, but they help support me.';
+
+    // Show popup
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2000);
+  });

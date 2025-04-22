@@ -197,3 +197,25 @@ input[type="number"] {
 .source-code-button:active {
   background-color: #222;
 }
+#ads-toast {
+  visibility: hidden;
+  min-width: 400px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 16px;
+  padding: 16px 32px;
+  position: fixed;
+  z-index: 999;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  opacity: 0;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+#ads-toast.show {
+  visibility: visible;
+  opacity: 1;
+}
