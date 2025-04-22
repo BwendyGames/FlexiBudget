@@ -152,3 +152,15 @@ body {
     border-radius: 5px;
   }
   
+
+  .logo {
+    width: 50%;
+    height: auto; /* Maintains aspect ratio */
+    display: block;
+    margin: 0 auto;
+  }
+  
+  .logo-container {
+    text-align: center;
+  }
+  
