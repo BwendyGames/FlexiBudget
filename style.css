@@ -164,3 +164,14 @@ body {
     text-align: center;
   }
   
+  .amount-input,
+.percent-input {
+  width: 60px;
+  margin: 0 4px;
+  padding: 2px;
+  font-size: 1em;
+}
+input[type="number"] {
+  padding: 3px 5px;
+  font-size: 0.95em;
+}
