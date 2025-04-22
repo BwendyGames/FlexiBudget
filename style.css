@@ -175,3 +175,25 @@ input[type="number"] {
   padding: 3px 5px;
   font-size: 0.95em;
 }
+
+.source-code-button {
+  background-color: #333; /* Dark GitHub-style background */
+  color: #fff;
+  padding: 10px 16px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  text-decoration: none; /* Useful if it's an <a> link styled as a button */
+  display: inline-block;
+}
+
+.source-code-button:hover {
+  background-color: #555;
+}
+
+.source-code-button:active {
+  background-color: #222;
+}

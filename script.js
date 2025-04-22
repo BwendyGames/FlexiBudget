@@ -229,3 +229,7 @@ importInput.addEventListener('change', (e) => {
   };
   reader.readAsText(file);
 });
+
+document.getElementById('source-code-button').addEventListener('click', () => {
+  window.open('https://github.com/BwendyGames/FlexiBudget', '_blank');
+});
