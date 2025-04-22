@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlexiBudget</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>FlexiBudget</h1>
+    
+    <div id="budget-summary" class="budget-summary">
+        <h2>Total Budget: $<span id="displayed-budget">0.00</span></h2>
+        <h2>Total Days: <span id="displayed-days">0.00</span></h2>
+    </div>
+
+    <form id="budget-form">
+        <div class="form-group">
+            <label for="total-budget">Total Budget ($)</label>
+            <input type="number" id="total-budget" required>
+          </div>
+          <div class="form-group">
+            <label for="total-days">Number of Days</label>
+            <input type="number" id="total-days" required>
+          </div>
+      <button type="submit">Generate Budget</button>
+    </form>
+      
+    <div id="budget-list"></div>
+
+    <div class="export-import">
+      <button id="export-json">Export JSON</button>
+      <label for="import-json" class="import-label">Import JSON</label>
+      <input type="file" id="import-json" accept=".json">
+    </div>
+  </div>
+
+  <footer>
+    <p>Created with ❤️ by <a href="https://bwendy.dev" target="_blank">BwendyDev</a></p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
