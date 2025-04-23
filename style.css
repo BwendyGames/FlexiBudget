@@ -98,7 +98,7 @@ input.input-json {
   footer {
     text-align: center;
     padding: 20px;
-    background-color: #f1f1f1;
+    background-color: #ccc;
     font-size: 14px;
     color: #333;
     position: fixed;
@@ -218,10 +218,6 @@ input[type="number"] {
   background-color: hotpink;
 }
 
-
-.disable-ads-button{
-
-}
 #ads-toast {
   visibility: hidden;
   min-width: 400px;
