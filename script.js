@@ -234,7 +234,7 @@ document.getElementById('source-code-button').addEventListener('click', () => {
   window.open('https://github.com/BwendyGames/FlexiBudget', '_blank');
 });
 
-const button = document.getElementById('toggle-ads-button');
+const button = document.getElementById('disable-ads-button');
   const adContainer = document.getElementById('ad-container');
   const toast = document.getElementById('ads-toast');
 
