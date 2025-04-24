@@ -1,66 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FlexiBudget</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="logo.png"> 
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3865879232460974"
-     crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="logo.png" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>FlexiBudget</h1>
     <div class="logo-container">
-      <img src="logo.png" class="logo" alt="logo">
-    </div>
-    <div id="ads-toast"></div>
-    <div id="budget-summary" class="budget-summary">
-        <h2>Total Budget: $<span id="displayed-budget">0.00</span></h2>
-        <h2>Total Days: <span id="displayed-days">0</span></h2>
+      <img src="logo.png" class="logo" alt="logo" />
     </div>
 
-    <div id="ad-container">
-      <ins class="adsbygoogle"
-           style="display:block"
-           data-ad-client="ca-pub-3865879232460974"
-           data-ad-slot="1234567890"
-           data-ad-format="auto"
-           data-full-width-responsive="true"></ins>
-      <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-      </script>
+    <div id="budget-summary" class="budget-summary">
+      <div><strong>Total Budget:</strong> $<span id="displayed-budget">0.00</span></div>
+      <div><strong>Date Range:</strong> <span id="displayed-range">-</span></div>
     </div>
 
     <form id="budget-form">
-        <div class="form-group">
-            <label for="total-budget">Total Budget ($)</label>
-            <input type="number" id="total-budget" required>
-          </div>
-          <div class="form-group">
-            <label for="total-days">Number of Days</label>
-            <input type="number" id="total-days" required>
-          </div>
+      <div class="form-group">
+        <label for="total-budget">Total Budget ($)</label>
+        <input type="number" id="total-budget" required />
+      </div>
+      <div class="form-group">
+        <label for="start-date">Start Date</label>
+        <input type="date" id="start-date" required />
+      </div>
+      <div class="form-group">
+        <label for="end-date">End Date</label>
+        <input type="date" id="end-date" required />
+      </div>
       <button type="submit">Generate Budget</button>
     </form>
-      
+
     <div id="budget-list"></div>
 
+    <div id="category-section" class="hidden">
+      <h3>Category Budget Split</h3>
+      <div id="category-list"></div>
+      <div id="category-sliders"></div>
+      <canvas id="category-chart" width="400" height="200"></canvas>
+    </div>
+    
     <div class="export-import">
       <button id="export-json">Export JSON</button>
-
       <label for="import-json" class="custom-file-label">Import JSON</label>
-      <input class="input-json" type="file" id="import-json" accept=".json">
-
+      <input class="input-json" type="file" id="import-json" accept=".json" />
     </div>
-  </div>
 
-  <footer>
-    <p>Created with ❤️ by <a href="https://bwendy.dev" target="_blank">BwendyDev</a></p>
-    <button class="source-code-button" id="source-code-button">Source Code</button>
-    <button id="disable-ads-button" class="disable-ads-button">Disable Ads</button>
-  </footer>
+    <footer>
+      <p>Created with ❤️ by <a href="https://bwendy.dev" target="_blank">BwendyDev</a></p>
+      <button class="source-code-button" id="source-code-button">Source Code</button>
+
+      <script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
+      <script>
+        kofiWidgetOverlay.draw('bwendydev', {
+          'type': 'floating-chat',
+          'floating-chat.donateButton.text': 'Support me',
+          'floating-chat.donateButton.background-color': '#00b9fe',
+          'floating-chat.donateButton.text-color': '#fff'
+        });
+      </script>
+    </footer>
+  </div>
 
   <script src="script.js"></script>
 </body>

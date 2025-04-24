@@ -1,193 +1,345 @@
+// Enhanced FlexiBudget script.js with smooth sliders and percentage display
 const form = document.getElementById('budget-form');
 const budgetList = document.getElementById('budget-list');
 const exportButton = document.getElementById('export-json');
 const importInput = document.getElementById('import-json');
+const categoryList = document.getElementById('category-list');
+const categorySliders = document.getElementById('category-sliders');
+const displayedRange = document.getElementById('displayed-range');
 
 let daysData = [];
+let categories = ['Food', 'Transport', 'Entertainment', 'Utilities', 'Miscellaneous'];
+let categoryTotals = {};
 
 form.addEventListener('submit', (e) => {
   e.preventDefault();
   const totalBudget = parseFloat(document.getElementById('total-budget').value);
-  const totalDays = parseInt(document.getElementById('total-days').value);
+  const startDate = document.getElementById('start-date').value;
+  const endDate = document.getElementById('end-date').value;
 
-  const defaultPercent = 1 / totalDays;
-  daysData = Array.from({ length: totalDays }, (_, i) => ({
-    day: i + 1,
-    percent: defaultPercent,
-    days: totalDays,
-    amount: (totalBudget * defaultPercent),
-    locked: false,
-    editing: false,
-  }));
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const totalDays = (end - start) / (1000 * 60 * 60 * 24) + 1;
 
-  createDisplay(totalBudget, totalDays);
+  displayedRange.textContent = `${start.toDateString()} - ${end.toDateString()}`;
+
+  const defaultSplit = 1 / categories.length;
+  categoryTotals = {};
+  categories.forEach(cat => categoryTotals[cat] = totalBudget * defaultSplit);
+
+  document.getElementById('displayed-budget').textContent = totalBudget.toFixed(2);
+  document.getElementById('budget-summary').classList.remove('hidden');
+
+  daysData = [];
+  for (let i = 0; i < totalDays; i++) {
+    const currentDate = new Date(start);
+    currentDate.setDate(start.getDate() + i);
+    const dayLabel = `${currentDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} (${currentDate.toLocaleDateString(undefined, { weekday: 'long' })})`;
+
+    const dailySplit = {};
+    categories.forEach(cat => dailySplit[cat] = categoryTotals[cat] / totalDays);
+
+    daysData.push({
+      label: dayLabel,
+      date: currentDate.toISOString().split('T')[0],
+      categories: dailySplit,
+      total: totalBudget / totalDays,
+      locked: false,
+      editing: false
+    });
+  }
+
+  createCategoryDisplay();
+  createDisplay();
 });
 
-function createDisplay(totalBudget, totalDays) {
-  document.getElementById('displayed-budget').textContent = totalBudget.toFixed(2);
-  document.getElementById('displayed-days').textContent = totalDays;
+function createCategoryDisplay() {
+  categoryList.innerHTML = '';
+  categorySliders.innerHTML = '';
+  const totalBudget = parseFloat(document.getElementById('total-budget').value);
 
+  categories.forEach((cat) => {
+    const div = document.createElement('div');
+    const percent = (categoryTotals[cat] / totalBudget) * 100;
+    div.textContent = `${cat}: $${categoryTotals[cat].toFixed(2)} (${percent.toFixed(1)}%)`;
+    categoryList.appendChild(div);
+
+    const row = document.createElement('div');
+    row.className = 'slider-row';
+
+    const label = document.createElement('label');
+    label.textContent = `${cat}: `;
+
+    const input = document.createElement('input');
+    input.type = 'range';
+    input.min = 0;
+    input.max = 100;
+    input.step = 0.1;
+    input.value = percent;
+    input.style.width = '200px';
+
+    const output = document.createElement('span');
+    output.textContent = `${percent.toFixed(1)}%`;
+
+    input.addEventListener('input', () => {
+      const newPercent = parseFloat(input.value) / 100;
+      output.textContent = `${(newPercent * 100).toFixed(1)}%`;
+      adjustCategoryTotals(cat, newPercent, totalBudget);
+      updateLiveCategoryDisplay();
+    });
+
+    row.appendChild(label);
+    row.appendChild(input);
+    row.appendChild(output);
+    categorySliders.appendChild(row);
+  });
+
+  updateCategoryChart();
+  document.getElementById('category-section').classList.remove('hidden');
+}
+
+function updateLiveCategoryDisplay() {
+  const totalBudget = parseFloat(document.getElementById('total-budget').value);
+  const divs = categoryList.querySelectorAll('div');
+  categories.forEach((cat, i) => {
+    const percent = (categoryTotals[cat] / totalBudget) * 100;
+    if (divs[i]) {
+      divs[i].textContent = `${cat}: $${categoryTotals[cat].toFixed(2)} (${percent.toFixed(1)}%)`;
+    }
+  });
+  updateCategoryChart();
+}
+
+function adjustCategoryTotals(changedCat, newPercent, totalBudget) {
+  const oldPercent = categoryTotals[changedCat] / totalBudget;
+  const delta = newPercent - oldPercent;
+  categoryTotals[changedCat] = newPercent * totalBudget;
+
+  const others = categories.filter(c => c !== changedCat);
+  const totalOther = others.reduce((sum, c) => sum + categoryTotals[c], 0);
+
+  others.forEach(c => {
+    categoryTotals[c] = categoryTotals[c] * (1 - delta / totalOther);
+  });
+
+  normalizeCategoryTotals(totalBudget);
+}
+
+function normalizeCategoryTotals(totalBudget) {
+  const total = categories.reduce((sum, c) => sum + categoryTotals[c], 0);
+  categories.forEach(c => {
+    categoryTotals[c] = (categoryTotals[c] / total) * totalBudget;
+  });
+}
+
+function updateCategoryChart() {
+  const ctx = document.getElementById('category-chart').getContext('2d');
+  const data = {
+    labels: categories,
+    datasets: [{
+      data: categories.map(cat => categoryTotals[cat]),
+      backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#8BC34A', '#9C27B0']
+    }]
+  };
+  if (window.categoryChart) {
+    window.categoryChart.data = data;
+    window.categoryChart.update();
+  } else {
+    window.categoryChart = new Chart(ctx, {
+      type: 'pie',
+      data
+    });
+  }
+}
+
+function createDisplay() {
   budgetList.innerHTML = '';
 
   daysData.forEach((day, index) => {
     const div = document.createElement('div');
     div.className = 'budget-item';
+    const title = document.createElement('h4');
+    title.textContent = day.label;
+    div.appendChild(title);
 
-    const label = document.createElement('label');
-    label.style.display = 'flex';
-    label.style.alignItems = 'center';
-    label.style.gap = '8px';
-    label.style.flexWrap = 'wrap';
-
-    if (day.editing) {
-      const nameInput = document.createElement('input');
-      nameInput.type = 'text';
-      nameInput.value = day.name || `Day ${day.day}`;
-      nameInput.style.width = '120px';
-
-      nameInput.addEventListener('input', () => {
-        day.name = nameInput.value;
-      });
-
-      const dollarSign = document.createElement('span');
-      dollarSign.innerText = '$';
-
-      const amountInput = document.createElement('input');
-      amountInput.type = 'number';
-      amountInput.step = '0.01';
-      amountInput.value = day.amount.toFixed(2);
-      amountInput.style.width = '70px';
-
-      const percentInput = document.createElement('input');
-      percentInput.type = 'number';
-      percentInput.step = '0.1';
-      percentInput.value = (day.percent * 100).toFixed(1);
-      percentInput.style.width = '60px';
-
-      const percentLabel = document.createElement('span');
-      percentLabel.innerText = '%';
-
-      amountInput.addEventListener('change', () => {
-        const newAmount = parseFloat(amountInput.value);
-        const newPercent = newAmount / totalBudget;
-        if (!day.locked) {
-          adjustPercent(index, newPercent, totalBudget);
-          updateLabels(totalBudget);
+    if (!day.editing) {
+      const totalText = document.createElement('p');
+      totalText.textContent = `Total: $${day.total.toFixed(2)}`;
+      div.appendChild(totalText);
+      
+      const canvas = document.createElement('canvas');
+      canvas.id = `day-chart-${index}`;
+      canvas.width = 300;
+      canvas.height = 300;
+      div.appendChild(canvas);
+      
+      const chart = new Chart(canvas.getContext('2d'), {
+        type: 'pie',
+        data: {
+          labels: categories,
+          datasets: [{
+            data: categories.map(cat => day.categories[cat]),
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#8BC34A', '#9C27B0']
+          }]
+        },
+        options: {
+          plugins: {
+            legend: {
+              display: true,
+              position: 'right',
+              labels: {
+                boxWidth: 12,
+                padding: 8
+              }
+            }
+            
+          }
         }
       });
-
-      percentInput.addEventListener('change', () => {
-        const newPercent = parseFloat(percentInput.value) / 100;
-        if (!day.locked) {
-          adjustPercent(index, newPercent, totalBudget);
-          updateLabels(totalBudget);
-        }
-      });
-
-      label.append(nameInput, dollarSign, amountInput, percentInput, percentLabel);
     } else {
-      label.textContent = formatDayLabel(day, totalBudget);
+      // --- Total Day Budget Editor ---
+      const totalContainer = document.createElement('div');
+      totalContainer.style.display = 'flex';
+      totalContainer.style.alignItems = 'center';
+      totalContainer.style.gap = '0.5rem';
+      totalContainer.style.marginBottom = '1rem';
+    
+      const totalLabel = document.createTextNode('Day Budget: ');
+    
+      const totalSlider = document.createElement('input');
+      totalSlider.type = 'range';
+      totalSlider.min = 0;
+      totalSlider.max = 1000;
+      totalSlider.step = 0.1;
+      totalSlider.value = day.total;
+      totalSlider.style.width = '150px';
+    
+      const totalInput = document.createElement('input');
+      totalInput.type = 'number';
+      totalInput.min = 0;
+      totalInput.step = 0.1;
+      totalInput.value = day.total.toFixed(2);
+      totalInput.style.width = '60px';
+      totalInput.style.padding = '4px';
+    
+      const updateTotal = (newVal) => {
+        const newTotal = parseFloat(newVal);
+        const ratio = newTotal / day.total;
+        day.total = newTotal;
+    
+        // Scale categories proportionally
+        categories.forEach(cat => {
+          day.categories[cat] *= ratio;
+        });
+    
+        totalSlider.value = newTotal;
+        totalInput.value = newTotal.toFixed(2);
+        createDisplay(); // Re-render to update category sliders
+      };
+    
+      totalSlider.addEventListener('input', () => {
+        updateTotal(totalSlider.value);
+      });
+    
+      totalInput.addEventListener('change', () => {
+        updateTotal(totalInput.value);
+      });
+    
+      totalContainer.appendChild(totalLabel);
+      totalContainer.appendChild(totalSlider);
+      totalContainer.appendChild(totalInput);
+      div.appendChild(totalContainer);
+    
+      // --- Category Sliders + Manual Inputs ---
+      categories.forEach(cat => {
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.alignItems = 'center';
+        row.style.gap = '0.5rem';
+        row.style.marginBottom = '0.5rem';
+    
+        const label = document.createElement('label');
+        label.textContent = `${cat}: `;
+        label.style.width = '100px';
+    
+        const input = document.createElement('input');
+        input.type = 'range';
+        input.min = 0;
+        input.max = day.total;
+        input.step = 0.1;
+        input.value = day.categories[cat];
+        input.style.width = '150px';
+    
+        const numberInput = document.createElement('input');
+        numberInput.type = 'number';
+        numberInput.min = 0;
+        numberInput.step = 0.1;
+        numberInput.value = day.categories[cat].toFixed(2);
+        numberInput.style.width = '60px';
+        numberInput.style.padding = '4px';
+    
+        const updateCategory = (value) => {
+          const floatVal = parseFloat(value);
+          day.categories[cat] = floatVal;
+          input.value = floatVal;
+          numberInput.value = floatVal.toFixed(2);
+          updateLiveDayDisplay(index, day);
+        };
+    
+        input.addEventListener('input', () => {
+          updateCategory(input.value);
+        });
+    
+        numberInput.addEventListener('change', () => {
+          updateCategory(numberInput.value);
+        });
+    
+        row.appendChild(label);
+        row.appendChild(input);
+        row.appendChild(numberInput);
+        div.appendChild(row);
+      });
     }
+    
 
-    const slider = document.createElement('input');
-    slider.type = 'range';
-    slider.min = 0;
-    slider.max = 100;
-    slider.step = 0.1;
-    slider.value = day.percent * 100;
-    slider.dataset.index = index;
-
-    slider.addEventListener('input', () => {
-      if (!day.locked) {
-        const newPercent = parseFloat(slider.value) / 100;
-        adjustPercent(index, newPercent, totalBudget);
-        updateLabels(totalBudget, totalDays);
-      }
+    const editBtn = document.createElement('button');
+    editBtn.textContent = day.editing ? 'Done' : 'Edit';
+    editBtn.addEventListener('click', () => {
+      day.editing = !day.editing;
+      createDisplay();
     });
+    div.appendChild(editBtn);
 
-    const lockButton = document.createElement('button');
-    lockButton.textContent = day.locked ? 'Unlock' : 'Lock';
-    lockButton.className = day.locked ? 'locked' : 'unlocked';
-    lockButton.addEventListener('click', () => toggleLock(index));
-
-    const editButton = document.createElement('button');
-    editButton.textContent = day.editing ? 'Done' : 'Edit';
-    editButton.addEventListener('click', () => {
-      daysData[index].editing = !daysData[index].editing;
-      createDisplay(totalBudget, totalDays);
+    const lockBtn = document.createElement('button');
+    lockBtn.textContent = day.locked ? 'Unlock' : 'Lock';
+    lockBtn.addEventListener('click', () => {
+      day.locked = !day.locked;
+      createDisplay();
     });
+    div.appendChild(lockBtn);
 
-    div.appendChild(label);
-    div.appendChild(slider);
-    div.appendChild(lockButton);
-    div.appendChild(editButton);
     budgetList.appendChild(div);
   });
 }
 
-function toggleLock(index) {
-  daysData[index].locked = !daysData[index].locked;
-  const totalBudget = parseFloat(document.getElementById('total-budget').value);
-  const totalDays = parseInt(document.getElementById('total-days').value);
-  createDisplay(totalBudget, totalDays);
+function updateLiveDayDisplay(index, day) {
+  // In future we could update just the numeric parts live if needed
+  // but for now this placeholder supports future expansion
 }
 
-function formatDayLabel(day, totalBudget) {
-  const amount = day.amount || (day.percent * totalBudget);
-  return `${day.name || `Day ${day.day}`}: $${amount.toFixed(2)} (${(day.percent * 100).toFixed(1)}%)`;
-}
-
-function updateLabels(totalBudget) {
-  const labels = budgetList.querySelectorAll('label');
-  const sliders = budgetList.querySelectorAll('input[type="range"]');
-
-  daysData.forEach((day, index) => {
-    if (!day.editing) {
-      labels[index].textContent = formatDayLabel(day, totalBudget);
-    }
-    sliders[index].value = day.percent * 100;
+function updateDayCategories(day) {
+  const perCat = day.total / categories.length;
+  categories.forEach(cat => {
+    day.categories[cat] = perCat;
   });
 }
-
-function adjustPercent(changedIndex, newValue, totalBudget) {
-  const oldPercent = daysData[changedIndex].percent;
-  const delta = newValue - oldPercent;
-
-  daysData[changedIndex].percent = newValue;
-
-  const otherDays = daysData.filter((_, i) => i !== changedIndex && !daysData[i].locked);
-  const totalOtherPercent = otherDays.reduce((sum, d) => sum + d.percent, 0);
-
-  if (totalOtherPercent > 0) {
-    daysData.forEach((day, i) => {
-      if (i !== changedIndex && !day.locked) {
-        const adjustmentRatio = day.percent / totalOtherPercent;
-        day.percent = Math.max(0, day.percent - (delta * adjustmentRatio));
-      }
-    });
-  }
-
-  const total = daysData.reduce((sum, d) => sum + d.percent, 0);
-  daysData.forEach(day => {
-    day.percent = day.percent / total;
-    day.amount = parseFloat((totalBudget * day.percent).toFixed(2));
-  });
-}
-
 exportButton.addEventListener('click', () => {
   const totalBudget = parseFloat(document.getElementById('total-budget').value);
-  const totalDays = parseInt(document.getElementById('total-days').value);
   const exportData = {
-    totalBudget: totalBudget,
-    totalDays: totalDays,
-    days: daysData.map(day => ({
-      day: day.day,
-      name: day.name || `Day ${day.day}`,
-      percent: parseFloat(day.percent.toFixed(2)),
-      amount: parseFloat((totalBudget * day.percent).toFixed(2)),
-    }))    
+    totalBudget,
+    days: daysData,
+    categoryTotals
   };
-
   const json = JSON.stringify(exportData, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -202,64 +354,39 @@ importInput.addEventListener('change', (e) => {
   if (!file) return;
 
   const reader = new FileReader();
+
   reader.onload = (event) => {
     try {
       const importedData = JSON.parse(event.target.result);
-      const totalBudget = parseFloat(importedData.totalBudget) || 1;
-      const totalDays = parseInt(importedData.totalDays);
 
+      // Extract core values
+      const totalBudget = importedData.totalBudget;
+      daysData = importedData.days;
+      categoryTotals = importedData.categoryTotals || {};
+
+      // Update input field for visual consistency
       document.getElementById('total-budget').value = totalBudget;
-      document.getElementById('total-days').value = totalDays;
 
-      const importedDays = importedData.days;
-      daysData = importedDays.map((day, i) => ({
-        day: i + 1,
-        name: day.name || `Day ${i + 1}`,
-        percent: day.percent,
-        amount: day.amount,
-        locked: day.locked || false,
-        editing: false,
-        days: totalDays
-      }));
+      // Set total budget display
+      document.getElementById('displayed-budget').textContent = totalBudget.toFixed(2);
 
-      createDisplay(totalBudget, totalDays);
+      // Set date range display
+      const firstDate = new Date(daysData[0].date);
+      const lastDate = new Date(daysData[daysData.length - 1].date);
+      document.getElementById('displayed-range').textContent = `${firstDate.toDateString()} - ${lastDate.toDateString()}`;
+
+      // Show hidden UI elements
+      document.getElementById('budget-summary').classList.remove('hidden');
+      document.getElementById('category-section').classList.remove('hidden');
+      document.getElementById('budget-list').classList.remove('hidden');
+
+      // Render everything
+      createCategoryDisplay();
+      createDisplay();
     } catch (err) {
       alert('Invalid JSON file.');
     }
   };
+
   reader.readAsText(file);
 });
-
-document.getElementById('source-code-button').addEventListener('click', () => {
-  window.open('https://github.com/BwendyGames/FlexiBudget', '_blank');
-});
-
-const button = document.getElementById('disable-ads-button');
-  const adContainer = document.getElementById('ad-container');
-  const toast = document.getElementById('ads-toast');
-
-  // Load saved state or default to true (ads enabled)
-  let adsEnabled = localStorage.getItem('adsEnabled');
-  adsEnabled = adsEnabled === null ? true : JSON.parse(adsEnabled);
-
-  // Initial render
-  adContainer.style.display = adsEnabled ? 'block' : 'none';
-  button.textContent = adsEnabled ? 'Disable Ads' : 'Enable Ads';
-
-  button.addEventListener('click', () => {
-    adsEnabled = !adsEnabled;
-
-    // Save state
-    localStorage.setItem('adsEnabled', JSON.stringify(adsEnabled));
-
-    // Update UI
-    adContainer.style.display = adsEnabled ? 'block' : 'none';
-    button.textContent = adsEnabled ? 'Disable Ads' : 'Enable Ads';
-    toast.textContent = adsEnabled ? 'Ads are now enabled, thank you for your support.' : 'Ads are now disabled. Thankyou for using my site, on all of my sites, ads are optional where present. Its not required but appreciated.';
-
-    // Show popup
-    toast.classList.add('show');
-    setTimeout(() => {
-      toast.classList.remove('show');
-    }, 2000);
-  });

@@ -10,8 +10,22 @@ body {
     padding: 2rem;
     padding-bottom: 140px; /* increase a bit for safety */
   }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .page-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
   
   .container {
+    flex: 1;
     background-color: #ffffff;
     padding: 2rem;
     border-radius: 12px;
@@ -96,14 +110,14 @@ input.input-json {
   visibility:false;
   }
   footer {
-    text-align: center;
-    padding: 20px;
+    padding: 8px;
+    margin-top: 2rem;
+    border-radius: 8px;
     background-color: #ccc;
-    font-size: 14px;
-    color: #333;
-    position: fixed;
-    width: 100%;
-    bottom: 0;
+    display: flex;
+    text-align: center;
+    flex-direction: column;
+    gap: 1rem;
   }
   
   footer a {
@@ -118,18 +132,21 @@ input.input-json {
   #budget-summary {
     background-color: #e3f2fd;
     border-left: 5px solid #2196f3;
-    padding: 1rem;
+    padding: 1rem 1.5rem;
     margin-bottom: 1.5rem;
     border-radius: 8px;
+    font-family: 'Courier New', Courier, monospace;
     font-size: 1.2rem;
     color: #0d47a1;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-  }
+    word-break: break-word;
+  }  
   
-  #budget-summaryy strong {
+  #budget-summary strong {
     font-weight: 600;
   }
   
@@ -137,6 +154,10 @@ input.input-json {
     font-family: 'Courier New', Courier, monospace;
     font-size: 1.4rem;
     color: #0d47a1;
+  }
+  .budget-item canvas {
+    max-width: 150px;
+    height: auto;
   }
   
   button.locked {
@@ -160,6 +181,11 @@ input.input-json {
     text-align: center;
   }
   
+  .budget-item canvas {
+    max-height: 180px;
+    height: auto;
+  }
+  
   .amount-input,
 .percent-input {
   width: 60px;
@@ -178,7 +204,7 @@ input[type="number"] {
   padding: 10px 16px;
   margin: 8px 0;
   border: none;
-  width: 10%;
+  width: 100%;
   border-radius: 5px;
   font-size: 14px;
   cursor: pointer;
@@ -201,7 +227,7 @@ input[type="number"] {
   padding: 10px 16px;
   margin: 8px 0;
   border: none;
-  width: 10%;
+  width: 100%;
   border-radius: 5px;
   font-size: 14px;
   cursor: pointer;
